@@ -271,7 +271,7 @@ export const MapView = forwardRef<MapViewHandle, MapViewProps>(function MapView(
                 const nodeEl = (event.target as HTMLElement).closest("[data-mm-node]") as HTMLElement | null;
                 if (nodeEl) startEdit(nodeEl.dataset.mmNode!);
             }}
-            sx={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", bgcolor: "#f7f8fa", outline: "none", touchAction: "none", userSelect: "none", cursor: pointer.current?.kind === "pan" ? "grabbing" : "default" }}
+            sx={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", bgcolor: "#ffffff", outline: "none", touchAction: "none", userSelect: "none", cursor: pointer.current?.kind === "pan" ? "grabbing" : "default" }}
         >
             <Box sx={{ position: "absolute", left: 0, top: 0, transform: `translate(${view.x}px, ${view.y}px) scale(${view.z})`, transformOrigin: "0 0" }}>
                 <svg style={{ position: "absolute", left: 0, top: 0, width: 1, height: 1, overflow: "visible" }}>
@@ -438,7 +438,7 @@ export const MapView = forwardRef<MapViewHandle, MapViewProps>(function MapView(
             ) : null}
             {hint ? (
                 <Box sx={{ position: "absolute", left: 12, right: 12, bottom: 8, fontSize: 12, lineHeight: 1.5, color: "text.secondary", pointerEvents: "none" }}>
-                    <Box component="span" sx={{ bgcolor: "rgba(247,248,250,0.85)" }}>
+                    <Box component="span" sx={{ bgcolor: "rgba(255,255,255,0.85)" }}>
                         {strings.mapHint}
                     </Box>
                 </Box>
