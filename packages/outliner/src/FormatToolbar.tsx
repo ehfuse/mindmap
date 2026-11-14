@@ -163,17 +163,18 @@ export function ToolButton({ label, active = false, disabled = false, onClick, c
                     display: "inline-flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    // Same CSS variables as @ehfuse/editor — a host can shrink both toolbars at once.
+                    // Same CSS variables and colors as @ehfuse/editor — a host can shrink both toolbars at once.
                     width: "var(--editor-toolbar-button-size, 28px)",
                     height: "var(--editor-toolbar-button-size, 28px)",
+                    minWidth: "var(--editor-toolbar-button-size, 28px)",
                     p: 0,
                     border: "none",
                     borderRadius: "4px",
-                    bgcolor: active ? "rgba(0, 0, 0, 0.08)" : "transparent",
-                    color: disabled ? "rgba(0, 0, 0, 0.26)" : "inherit",
+                    bgcolor: active ? "var(--editor-active-bg-color, #e3f2fd)" : "transparent",
+                    color: disabled ? "rgba(0, 0, 0, 0.26)" : active ? "var(--editor-selected-icon-color, #0066cc)" : "var(--editor-icon-color, #444)",
                     cursor: disabled ? "not-allowed" : "pointer",
                     transition: "background-color 150ms cubic-bezier(0.4, 0, 0.2, 1)",
-                    "&:hover:not(:disabled)": { bgcolor: active ? "rgba(0, 0, 0, 0.08)" : "rgba(0, 0, 0, 0.04)" },
+                    "&:hover:not(:disabled)": { bgcolor: "var(--editor-border-color, #e0e0e0)", color: "var(--editor-selected-icon-color, #0066cc)" },
                     "&:focus": { outline: "none" },
                     "& svg": { width: "var(--editor-toolbar-icon-size, 18px)", height: "var(--editor-toolbar-icon-size, 18px)" },
                 }}
@@ -250,19 +251,6 @@ export function FormatToolbar({ strings, style, fontSize, onStyle, canUndo, canR
                     <ToolDivider />
                 </>
             ) : null}
-            {onUndo ? (
-                <>
-                    <ToolGroup>
-                        <ToolButton label={strings.undo} disabled={readOnly || !canUndo} onClick={onUndo}>
-                            <UndoIcon />
-                        </ToolButton>
-                        <ToolButton label={strings.redo} disabled={readOnly || !canRedo} onClick={() => onRedo?.()}>
-                            <RedoIcon />
-                        </ToolButton>
-                    </ToolGroup>
-                    <ToolDivider />
-                </>
-            ) : null}
             <ToolGroup>
                 <SizeBox label={strings.fontSize} value={shownSize} disabled={disabled} onApply={(px) => onStyle({ fontSize: px === fontSize ? undefined : `${px}px` })} />
             </ToolGroup>
@@ -294,6 +282,20 @@ export function FormatToolbar({ strings, style, fontSize, onStyle, canUndo, canR
                 <>
                     <ToolDivider />
                     {children}
+                </>
+            ) : null}
+            {/* Undo / redo at the very end (2026-11-14). */}
+            {onUndo ? (
+                <>
+                    <ToolDivider />
+                    <ToolGroup>
+                        <ToolButton label={strings.undo} disabled={readOnly || !canUndo} onClick={onUndo}>
+                            <UndoIcon />
+                        </ToolButton>
+                        <ToolButton label={strings.redo} disabled={readOnly || !canRedo} onClick={() => onRedo?.()}>
+                            <RedoIcon />
+                        </ToolButton>
+                    </ToolGroup>
                 </>
             ) : null}
             <Box sx={{ flex: 1 }} />
