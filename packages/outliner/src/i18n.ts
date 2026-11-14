@@ -1,6 +1,7 @@
 /** UI strings (ko · en · ja · zh · de · fr · it · vi). Unknown locale → English. */
 const STRINGS = {
     ko: {
+        clearFormat: "서식 지우기",
         fontSize: "글자 크기",
         sizeDefault: "기본",
         bold: "진하게",
@@ -18,6 +19,7 @@ const STRINGS = {
         hint: "Enter: 새 줄 · Tab / Shift+Tab: 들여쓰기 / 내어쓰기 · Alt+↑↓: 순서 · 줄 앞 손잡이 끌기: 옮기기 · 빈 줄 Backspace: 지우기",
     },
     en: {
+        clearFormat: "Clear format",
         fontSize: "Font size",
         sizeDefault: "Default",
         bold: "Bold",
@@ -35,6 +37,7 @@ const STRINGS = {
         hint: "Enter: new line · Tab / Shift+Tab: indent / outdent · Alt+↑↓: reorder · Drag the row handle: move · Backspace on empty: delete",
     },
     ja: {
+        clearFormat: "書式をクリア",
         fontSize: "文字サイズ",
         sizeDefault: "標準",
         bold: "太字",
@@ -52,6 +55,7 @@ const STRINGS = {
         hint: "Enter: 新しい行 · Tab / Shift+Tab: 字下げ / 字上げ · Alt+↑↓: 並べ替え · 行頭のハンドルをドラッグ: 移動 · 空行で Backspace: 削除",
     },
     zh: {
+        clearFormat: "清除格式",
         fontSize: "字号",
         sizeDefault: "默认",
         bold: "加粗",
@@ -69,6 +73,7 @@ const STRINGS = {
         hint: "Enter: 新行 · Tab / Shift+Tab: 缩进 / 取消缩进 · Alt+↑↓: 顺序 · 拖动行首手柄: 移动 · 空行 Backspace: 删除",
     },
     de: {
+        clearFormat: "Formatierung löschen",
         fontSize: "Schriftgröße",
         sizeDefault: "Standard",
         bold: "Fett",
@@ -86,6 +91,7 @@ const STRINGS = {
         hint: "Enter: neue Zeile · Tab / Shift+Tab: ein- / ausrücken · Alt+↑↓: Reihenfolge · Griff ziehen: verschieben · Backspace leer: löschen",
     },
     fr: {
+        clearFormat: "Effacer la mise en forme",
         fontSize: "Taille",
         sizeDefault: "Par défaut",
         bold: "Gras",
@@ -103,6 +109,7 @@ const STRINGS = {
         hint: "Entrée : nouvelle ligne · Tab / Maj+Tab : indenter / désindenter · Alt+↑↓ : ordre · Glisser la poignée : déplacer · Retour arrière vide : supprimer",
     },
     it: {
+        clearFormat: "Cancella formattazione",
         fontSize: "Dimensione",
         sizeDefault: "Predefinita",
         bold: "Grassetto",
@@ -120,6 +127,7 @@ const STRINGS = {
         hint: "Invio: nuova riga · Tab / Maiusc+Tab: rientro / riduci · Alt+↑↓: ordine · Trascina la maniglia: sposta · Backspace su vuota: elimina",
     },
     vi: {
+        clearFormat: "Xóa định dạng",
         fontSize: "Cỡ chữ",
         sizeDefault: "Mặc định",
         bold: "Đậm",

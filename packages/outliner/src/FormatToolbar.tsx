@@ -1,25 +1,18 @@
 /**
- * Formatting toolbar — font size · bold · underline · strike · text color · background, plus undo / redo.
- * Shared by the outline and the mind map; it edits the style of the selected node(s).
+ * Formatting toolbar — font size · bold · underline · strike · text color · background · clear format, plus undo / redo.
+ * Shared by the outline and the mind map; it edits the style of the selected node.
+ * Looks like the @ehfuse/editor toolbar on purpose: same icons (@ehfuse/toolbar-icons), same 32px buttons,
+ * same black tooltip and the same color picker (@ehfuse/mui-color-picker).
  * `start` / `end` / `children` let the host add its own controls (view switch, map tools, …).
  */
-import { useState, type ReactNode } from "react";
-import { Box, ButtonBase, Divider, IconButton, Menu, MenuItem, Popover, Tooltip } from "@mui/material";
-import FormatBoldIcon from "@mui/icons-material/FormatBold";
-import FormatUnderlinedIcon from "@mui/icons-material/FormatUnderlined";
-import StrikethroughSIcon from "@mui/icons-material/StrikethroughS";
-import FormatColorTextIcon from "@mui/icons-material/FormatColorText";
-import FormatColorFillIcon from "@mui/icons-material/FormatColorFill";
-import UndoIcon from "@mui/icons-material/Undo";
-import RedoIcon from "@mui/icons-material/Redo";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import FormatColorResetIcon from "@mui/icons-material/FormatColorReset";
+import { useState, type MouseEvent, type ReactNode } from "react";
+import { Box, ButtonBase, Menu, MenuItem, Tooltip } from "@mui/material";
+import { ColorPicker } from "@ehfuse/mui-color-picker";
+import { BoldIcon, FontColorIcon, FontFillIcon, RedoIcon, RemoveFormatIcon, StrikeIcon, UnderlineIcon, UndoIcon } from "@ehfuse/toolbar-icons";
 import { hasDecoration, toggleDecoration, type TreeNodeStyle } from "./tree";
 import type { OutlinerStrings } from "./i18n";
 
-export const FONT_SIZES = [12, 14, 16, 18, 20, 24, 28];
-export const TEXT_COLORS = ["#1f2328", "#5f6368", "#d93025", "#e8710a", "#f9ab00", "#188038", "#1a73e8", "#9334e6", "#c2185b", "#ffffff"];
-export const BACKGROUND_COLORS = ["#fde2e1", "#feefc3", "#fff8c5", "#ceead6", "#d2e3fc", "#e9d7fe", "#fad2e1", "#e8eaed", "#3c4043", "#1a73e8"];
+export const FONT_SIZES = [12, 14, 16, 18, 20, 24, 28, 32];
 
 export interface FormatToolbarProps {
     strings: OutlinerStrings;
@@ -36,118 +29,130 @@ export interface FormatToolbarProps {
     readOnly?: boolean;
 }
 
-const btnSx = (active = false) => ({
-    width: 30,
-    height: 30,
-    borderRadius: 1,
-    color: active ? "primary.main" : "text.secondary",
-    bgcolor: active ? "rgba(25,118,210,0.10)" : "transparent",
-    "&:hover": { bgcolor: active ? "rgba(25,118,210,0.16)" : "rgba(0,0,0,0.06)" },
-});
-
-export function ToolButton({ label, active, disabled, onClick, children }: { label: string; active?: boolean; disabled?: boolean; onClick: () => void; children: ReactNode }) {
+/** Same tooltip as the editor toolbar — black, 14px, arrow, below. */
+export function ToolTip({ title, children }: { title: string; children: ReactNode }) {
     return (
-        <Tooltip title={label} disableInteractive>
-            <span>
-                <IconButton size="small" aria-label={label} aria-pressed={active} disabled={disabled} onMouseDown={(event) => event.preventDefault()} onClick={onClick} sx={btnSx(active)}>
-                    {children}
-                </IconButton>
-            </span>
+        <Tooltip
+            title={title}
+            placement="bottom"
+            arrow
+            disableInteractive
+            leaveDelay={0}
+            slotProps={{ tooltip: { sx: { bgcolor: "#000000", color: "#ffffff", fontSize: "14px", fontWeight: "normal", "& .MuiTooltip-arrow": { color: "#000000" } } } }}
+        >
+            {/* inline-flex — a plain span adds line descent under the button and lifts it 2px off center. */}
+            <span style={{ display: "inline-flex" }}>{children}</span>
         </Tooltip>
     );
 }
 
-export const ToolDivider = () => <Divider orientation="vertical" flexItem sx={{ mx: 0.5, my: 0.75 }} />;
+/** Same button as the editor toolbar — 32px, 4px radius, light grey when on. */
+export function ToolButton({ label, active = false, disabled = false, onClick, children }: { label: string; active?: boolean; disabled?: boolean; onClick: (event: MouseEvent<HTMLElement>) => void; children: ReactNode }) {
+    return (
+        <ToolTip title={label}>
+            <Box
+                component="button"
+                type="button"
+                aria-label={label}
+                aria-pressed={active}
+                disabled={disabled}
+                onMouseDown={(event: MouseEvent) => event.preventDefault()}
+                onClick={(event: MouseEvent<HTMLElement>) => {
+                    event.preventDefault();
+                    if (!disabled) onClick(event);
+                }}
+                sx={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 32,
+                    height: 32,
+                    p: "6px",
+                    border: "none",
+                    borderRadius: "4px",
+                    bgcolor: active ? "rgba(0, 0, 0, 0.08)" : "transparent",
+                    color: disabled ? "rgba(0, 0, 0, 0.26)" : "inherit",
+                    cursor: disabled ? "not-allowed" : "pointer",
+                    transition: "background-color 150ms cubic-bezier(0.4, 0, 0.2, 1)",
+                    "&:hover:not(:disabled)": { bgcolor: active ? "rgba(0, 0, 0, 0.08)" : "rgba(0, 0, 0, 0.04)" },
+                    "&:focus": { outline: "none" },
+                    "& svg": { width: 20, height: 20 },
+                }}
+            >
+                {children}
+            </Box>
+        </ToolTip>
+    );
+}
 
-function ColorButton({ label, icon, value, colors, noneLabel, disabled, onPick }: { label: string; icon: ReactNode; value?: string; colors: string[]; noneLabel: string; disabled: boolean; onPick: (color: string | undefined) => void }) {
+export const ToolDivider = () => <Box sx={{ width: "1px", alignSelf: "stretch", my: "8px", mx: "4px", bgcolor: "#e0e0e0" }} />;
+
+function ColorButton({ label, type, value, disabled, onPick }: { label: string; type: "color" | "background"; value?: string; disabled: boolean; onPick: (color: string) => void }) {
     const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+    const shown = value ?? (type === "color" ? "#000000" : "#FFFFFF");
     return (
         <>
-            <Tooltip title={label} disableInteractive>
-                <span>
-                    <IconButton size="small" aria-label={label} disabled={disabled} onMouseDown={(event) => event.preventDefault()} onClick={(event) => setAnchor(event.currentTarget)} sx={{ ...btnSx(false), flexDirection: "column", gap: 0 }}>
-                        {icon}
-                        <Box sx={{ width: 16, height: 3, mt: "-3px", borderRadius: 0.5, bgcolor: value ?? "transparent", border: value ? 0 : "1px solid #c4c7cc" }} />
-                    </IconButton>
-                </span>
-            </Tooltip>
-            <Popover open={Boolean(anchor)} anchorEl={anchor} onClose={() => setAnchor(null)} transitionDuration={0} anchorOrigin={{ vertical: "bottom", horizontal: "left" }} disableRestoreFocus>
-                <Box sx={{ p: 1, display: "grid", gridTemplateColumns: "repeat(5, 24px)", gap: 0.75 }}>
-                    {colors.map((color) => (
-                        <ButtonBase
-                            key={color}
-                            aria-label={color}
-                            onMouseDown={(event) => event.preventDefault()}
-                            onClick={() => {
-                                onPick(color);
-                                setAnchor(null);
-                            }}
-                            sx={{ width: 24, height: 24, borderRadius: 0.75, bgcolor: color, border: "1px solid rgba(0,0,0,0.12)", outline: value?.toLowerCase() === color ? "2px solid #1a73e8" : "none", outlineOffset: 1 }}
-                        />
-                    ))}
-                    <ButtonBase
-                        onMouseDown={(event) => event.preventDefault()}
-                        onClick={() => {
-                            onPick(undefined);
-                            setAnchor(null);
-                        }}
-                        sx={{ gridColumn: "1 / -1", height: 26, borderRadius: 0.75, fontSize: 13, color: "text.secondary", gap: 0.5, "&:hover": { bgcolor: "rgba(0,0,0,0.05)" } }}
-                    >
-                        <FormatColorResetIcon sx={{ fontSize: 16 }} />
-                        {noneLabel}
-                    </ButtonBase>
-                </Box>
-            </Popover>
+            <ToolButton label={label} disabled={disabled} onClick={(event) => setAnchor(event.currentTarget)}>
+                {type === "color" ? <FontColorIcon width="20px" height="20px" barColor={shown} /> : <FontFillIcon width="20px" fillColor={shown} />}
+            </ToolButton>
+            {anchor ? (
+                <ColorPicker
+                    value={shown}
+                    onChange={(hex: string) => {
+                        onPick(hex);
+                        setAnchor(null);
+                    }}
+                    anchor={anchor}
+                    anchorMode="auto"
+                    onClose={() => setAnchor(null)}
+                    position="bottomCenter"
+                    advanced={{ position: "bottom" }}
+                    shape="square"
+                    colorSize={16}
+                    gap={4}
+                    padding={5}
+                    popover={{ disableEnforceFocus: true, disableAutoFocus: true, disableRestoreFocus: true, sx: { zIndex: 10001 } }}
+                />
+            ) : null}
         </>
     );
 }
 
 export function FormatToolbar({ strings, style, onStyle, canUndo, canRedo, onUndo, onRedo, start, children, end, readOnly }: FormatToolbarProps) {
     const [sizeAnchor, setSizeAnchor] = useState<HTMLElement | null>(null);
-    const disabled = readOnly || !style;
+    const disabled = Boolean(readOnly) || !style;
     const size = style?.fontSize ? parseFloat(style.fontSize) : null;
     const bold = style?.fontWeight === "bold" || Number(style?.fontWeight) >= 600;
+    const hasStyle = Boolean(style && Object.keys(style).length > 0);
     return (
-        <Box
-            sx={{
-                display: "flex",
-                alignItems: "center",
-                flexWrap: "wrap",
-                gap: 0.25,
-                minHeight: 40,
-                px: 1,
-                borderBottom: "1px solid #e0e0e0",
-                bgcolor: "#fff",
-                flexShrink: 0,
-            }}
-        >
+        <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "2px", minHeight: 44, px: 1, py: "4px", borderBottom: "1px solid #e0e0e0", bgcolor: "#fff", color: "#333", flexShrink: 0 }}>
             {start}
             {start ? <ToolDivider /> : null}
             {onUndo ? (
                 <>
                     <ToolButton label={strings.undo} disabled={readOnly || !canUndo} onClick={onUndo}>
-                        <UndoIcon sx={{ fontSize: 18 }} />
+                        <UndoIcon />
                     </ToolButton>
                     <ToolButton label={strings.redo} disabled={readOnly || !canRedo} onClick={() => onRedo?.()}>
-                        <RedoIcon sx={{ fontSize: 18 }} />
+                        <RedoIcon />
                     </ToolButton>
                     <ToolDivider />
                 </>
             ) : null}
-            <Tooltip title={strings.fontSize} disableInteractive>
-                <span>
-                    <ButtonBase
-                        disabled={disabled}
-                        onMouseDown={(event) => event.preventDefault()}
-                        onClick={(event) => setSizeAnchor(event.currentTarget)}
-                        sx={{ height: 30, px: 0.75, borderRadius: 1, fontSize: 13, color: disabled ? "text.disabled" : "text.primary", minWidth: 52, justifyContent: "space-between", "&:hover": { bgcolor: "rgba(0,0,0,0.06)" } }}
-                    >
-                        {size ?? strings.sizeDefault}
-                        <ArrowDropDownIcon sx={{ fontSize: 18, color: "text.secondary" }} />
-                    </ButtonBase>
-                </span>
-            </Tooltip>
-            <Menu open={Boolean(sizeAnchor)} anchorEl={sizeAnchor} onClose={() => setSizeAnchor(null)} transitionDuration={0} disableRestoreFocus>
+            <ToolTip title={strings.fontSize}>
+                <ButtonBase
+                    disabled={disabled}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={(event) => setSizeAnchor(event.currentTarget)}
+                    sx={{ height: 32, minWidth: 64, px: 1, gap: 0.5, justifyContent: "space-between", border: "1px solid #d0d0d0", borderRadius: "4px", fontSize: 14, color: disabled ? "rgba(0,0,0,0.26)" : "#333", bgcolor: "#fff", "&:hover": { borderColor: "#999" } }}
+                >
+                    {size ?? strings.sizeDefault}
+                    <Box component="span" sx={{ fontSize: 10, color: "#888" }}>
+                        ▼
+                    </Box>
+                </ButtonBase>
+            </ToolTip>
+            <Menu open={Boolean(sizeAnchor)} anchorEl={sizeAnchor} onClose={() => setSizeAnchor(null)} transitionDuration={0} disableRestoreFocus slotProps={{ paper: { sx: { maxHeight: 320 } } }}>
                 <MenuItem
                     dense
                     selected={size === null}
@@ -173,16 +178,23 @@ export function FormatToolbar({ strings, style, onStyle, canUndo, canRedo, onUnd
                 ))}
             </Menu>
             <ToolButton label={strings.bold} active={bold} disabled={disabled} onClick={() => onStyle({ fontWeight: bold ? undefined : "bold" })}>
-                <FormatBoldIcon sx={{ fontSize: 19 }} />
+                <BoldIcon />
             </ToolButton>
             <ToolButton label={strings.underline} active={hasDecoration(style, "underline")} disabled={disabled} onClick={() => onStyle({ textDecoration: toggleDecoration(style, "underline") })}>
-                <FormatUnderlinedIcon sx={{ fontSize: 19 }} />
+                <UnderlineIcon />
             </ToolButton>
             <ToolButton label={strings.strike} active={hasDecoration(style, "line-through")} disabled={disabled} onClick={() => onStyle({ textDecoration: toggleDecoration(style, "line-through") })}>
-                <StrikethroughSIcon sx={{ fontSize: 19 }} />
+                <StrikeIcon />
             </ToolButton>
-            <ColorButton label={strings.textColor} icon={<FormatColorTextIcon sx={{ fontSize: 17 }} />} value={style?.color} colors={TEXT_COLORS} noneLabel={strings.noColor} disabled={disabled} onPick={(color) => onStyle({ color })} />
-            <ColorButton label={strings.background} icon={<FormatColorFillIcon sx={{ fontSize: 17 }} />} value={style?.background} colors={BACKGROUND_COLORS} noneLabel={strings.noColor} disabled={disabled} onPick={(color) => onStyle({ background: color })} />
+            <ColorButton label={strings.textColor} type="color" value={style?.color} disabled={disabled} onPick={(color) => onStyle({ color })} />
+            <ColorButton label={strings.background} type="background" value={style?.background} disabled={disabled} onPick={(color) => onStyle({ background: color.toLowerCase() === "#ffffff" ? undefined : color })} />
+            <ToolButton
+                label={strings.clearFormat}
+                disabled={disabled || !hasStyle}
+                onClick={() => onStyle({ fontSize: undefined, color: undefined, background: undefined, fontWeight: undefined, textDecoration: undefined })}
+            >
+                <RemoveFormatIcon />
+            </ToolButton>
             {children ? <ToolDivider /> : null}
             {children}
             <Box sx={{ flex: 1 }} />

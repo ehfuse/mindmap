@@ -1,6 +1,6 @@
 {
     "name": "@ehfuse/outliner",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "Outliner for React + MUI — one row per node, fold, indent / outdent, drag to reorder, formatting toolbar (size · color · background · bold · underline · strike), undo",
     "main": "dist/index.js",
     "module": "dist/index.esm.js",
@@ -59,5 +59,9 @@
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
         "typescript": "^5.6.3"
+    },
+    "dependencies": {
+        "@ehfuse/mui-color-picker": "^1.5.4",
+        "@ehfuse/toolbar-icons": "^0.1.0"
     }
 }

@@ -7,13 +7,11 @@
  *        Ctrl/⌘+Z undo · Ctrl/⌘+Shift+Z / Ctrl+Y redo.
  */
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
-import { Box, IconButton, Tooltip } from "@mui/material";
-import SubdirectoryArrowRightIcon from "@mui/icons-material/SubdirectoryArrowRight";
-import AddIcon from "@mui/icons-material/Add";
-import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import { Box } from "@mui/material";
+import { ChildBranchIcon, PencilIcon, SiblingBranchIcon, TrashIcon } from "@ehfuse/toolbar-icons";
 import {
     DEFAULT_FONT_FAMILY,
+    ToolButton,
     addChild,
     addSibling,
     containsNode,
@@ -255,11 +253,9 @@ export const MapView = forwardRef<MapViewHandle, MapViewProps>(function MapView(
     const dragLN = drag ? layout.byId.get(drag.id) : undefined;
     const dropLN = drag?.target ? layout.byId.get(drag.target.id) : undefined;
     const barButton = (key: string, label: string, icon: React.ReactNode, onClick: () => void) => (
-        <Tooltip key={key} title={label} disableInteractive>
-            <IconButton size="small" aria-label={label} onMouseDown={(event) => event.preventDefault()} onClick={onClick} sx={{ width: 28, height: 28, color: "text.secondary", "&:hover": { color: "primary.main" } }}>
-                {icon}
-            </IconButton>
-        </Tooltip>
+        <ToolButton key={key} label={label} onClick={onClick}>
+            {icon}
+        </ToolButton>
     );
 
     return (
@@ -434,10 +430,10 @@ export const MapView = forwardRef<MapViewHandle, MapViewProps>(function MapView(
                         zIndex: 6,
                     }}
                 >
-                    {barButton("child", strings.addChild, <SubdirectoryArrowRightIcon sx={{ fontSize: 18 }} />, () => apply(addChild(root, selected.id), undefined, true))}
-                    {selected.depth > 0 ? barButton("sibling", strings.addSibling, <AddIcon sx={{ fontSize: 18 }} />, () => apply(addSibling(root, selected.id), undefined, true)) : null}
-                    {barButton("edit", strings.edit, <EditOutlinedIcon sx={{ fontSize: 17 }} />, () => startEdit(selected.id))}
-                    {selected.depth > 0 ? barButton("delete", strings.remove, <DeleteOutlineIcon sx={{ fontSize: 18 }} />, () => apply(removeNode(root, selected.id))) : null}
+                    {barButton("child", strings.addChild, <ChildBranchIcon />, () => apply(addChild(root, selected.id), undefined, true))}
+                    {selected.depth > 0 ? barButton("sibling", strings.addSibling, <SiblingBranchIcon />, () => apply(addSibling(root, selected.id), undefined, true)) : null}
+                    {barButton("edit", strings.edit, <PencilIcon />, () => startEdit(selected.id))}
+                    {selected.depth > 0 ? barButton("delete", strings.remove, <TrashIcon />, () => apply(removeNode(root, selected.id))) : null}
                 </Box>
             ) : null}
             {hint ? (

@@ -4,12 +4,7 @@
  */
 import { forwardRef, useImperativeHandle, useRef, useState, type ReactNode } from "react";
 import { Box, ButtonBase } from "@mui/material";
-import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
-import EastIcon from "@mui/icons-material/East";
-import WestIcon from "@mui/icons-material/West";
-import CenterFocusStrongOutlinedIcon from "@mui/icons-material/CenterFocusStrongOutlined";
-import ZoomInIcon from "@mui/icons-material/ZoomIn";
-import ZoomOutIcon from "@mui/icons-material/ZoomOut";
+import { BranchBothIcon, BranchLeftIcon, BranchRightIcon, FitCenterIcon, ZoomInIcon, ZoomOutIcon } from "@ehfuse/toolbar-icons";
 import { FormatToolbar, OutlineList, ToolButton, ToolDivider, locateNode, setNodeStyle, useTreeHistory, type TreeNode } from "@ehfuse/outliner";
 import { MapView, type MapViewHandle } from "./MapView";
 import { mindMapStrings, type MindMapStrings } from "./i18n";
@@ -40,9 +35,9 @@ export interface MindMapHandle {
 }
 
 const DIRECTIONS: Array<{ value: MapDirection; key: "dirSide" | "dirRight" | "dirLeft"; icon: ReactNode }> = [
-    { value: 2, key: "dirSide", icon: <SwapHorizIcon sx={{ fontSize: 19 }} /> },
-    { value: 1, key: "dirRight", icon: <EastIcon sx={{ fontSize: 18 }} /> },
-    { value: 0, key: "dirLeft", icon: <WestIcon sx={{ fontSize: 18 }} /> },
+    { value: 2, key: "dirSide", icon: <BranchBothIcon /> },
+    { value: 1, key: "dirRight", icon: <BranchRightIcon /> },
+    { value: 0, key: "dirLeft", icon: <BranchLeftIcon /> },
 ];
 
 export const MindMap = forwardRef<MindMapHandle, MindMapProps>(function MindMap(
@@ -129,13 +124,13 @@ export const MindMap = forwardRef<MindMapHandle, MindMapProps>(function MindMap(
                         ))}
                         <ToolDivider />
                         <ToolButton label={strings.zoomOut} onClick={() => mapRef.current?.zoomBy(1 / 1.2)}>
-                            <ZoomOutIcon sx={{ fontSize: 19 }} />
+                            <ZoomOutIcon />
                         </ToolButton>
                         <ToolButton label={strings.zoomIn} onClick={() => mapRef.current?.zoomBy(1.2)}>
-                            <ZoomInIcon sx={{ fontSize: 19 }} />
+                            <ZoomInIcon />
                         </ToolButton>
                         <ToolButton label={strings.center} onClick={() => mapRef.current?.center()}>
-                            <CenterFocusStrongOutlinedIcon sx={{ fontSize: 18 }} />
+                            <FitCenterIcon />
                         </ToolButton>
                     </>
                 ) : null}

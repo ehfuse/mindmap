@@ -22,6 +22,8 @@ const commonOptions = {
         "@mui/icons-material",
         "@emotion/react",
         "@emotion/styled",
+        "@ehfuse/toolbar-icons",
+        "@ehfuse/mui-color-picker",
     ],
     target: ["es2020"],
 };
