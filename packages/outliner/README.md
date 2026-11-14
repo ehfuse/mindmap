@@ -60,3 +60,15 @@ operations (`addChild`, `addSibling`, `indentNode`, `outdentNode`, `moveNode`, `
 | `height` | `number \| string` | Default `100%` |
 
 License: MIT
+
+## Sizing
+
+The toolbar reads the same CSS variables as `@ehfuse/editor`, so one rule sizes both:
+
+```css
+:root {
+    --editor-toolbar-button-size: 26px; /* default 32px */
+    --editor-toolbar-icon-size: 18px;   /* default 20px */
+    --editor-toolbar-button-gap: 0px;   /* default 2px */
+}
+```
