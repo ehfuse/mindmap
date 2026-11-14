@@ -1,6 +1,6 @@
 {
     "name": "@ehfuse/outliner",
-    "version": "0.2.3",
+    "version": "0.2.4",
     "description": "Outliner for React + MUI — one row per node, fold, indent / outdent, drag to reorder, formatting toolbar (size · color · background · bold · underline · strike), undo",
     "main": "dist/index.js",
     "module": "dist/index.esm.js",

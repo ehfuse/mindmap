@@ -63,6 +63,19 @@ export function locateNode(root: TreeNode, id: string): { node: TreeNode; parent
 /** True when `id` is `node` itself or one of its descendants. */
 export const containsNode = (node: TreeNode, id: string): boolean => node.id === id || (node.children ?? []).some((child) => containsNode(child, id));
 
+/** Depth of a node (root = 0); -1 when not found. */
+export function nodeDepth(root: TreeNode, id: string): number {
+    const walk = (node: TreeNode, depth: number): number => {
+        if (node.id === id) return depth;
+        for (const child of node.children ?? []) {
+            const found = walk(child, depth + 1);
+            if (found >= 0) return found;
+        }
+        return -1;
+    };
+    return walk(root, 0);
+}
+
 export const isFolded = (node: TreeNode) => node.expanded === false && (node.children?.length ?? 0) > 0;
 
 /** Rows that are visible (folded subtrees hidden), in reading order. */

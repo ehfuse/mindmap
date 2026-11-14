@@ -5,10 +5,10 @@
 import { forwardRef, useImperativeHandle, useRef, useState, type ReactNode } from "react";
 import { Box, ButtonBase } from "@mui/material";
 import { BranchBothIcon, BranchLeftIcon, BranchRightIcon, FitCenterIcon, ZoomInIcon, ZoomOutIcon } from "@ehfuse/toolbar-icons";
-import { FormatToolbar, OutlineList, ToolButton, ToolDivider, locateNode, setNodeStyle, useTreeHistory, type TreeNode } from "@ehfuse/outliner";
+import { FormatToolbar, OutlineList, ToolButton, ToolDivider, ToolGroup, locateNode, nodeDepth, outlineTextStyle, setNodeStyle, useTreeHistory, type TreeNode } from "@ehfuse/outliner";
 import { MapView, type MapViewHandle } from "./MapView";
 import { mindMapStrings, type MindMapStrings } from "./i18n";
-import type { MapDirection } from "./layout";
+import { nodeFont, type MapDirection } from "./layout";
 import type { MindMapData, MindMapView } from "./types";
 import { exportMindMapSvg } from "./exportSvg";
 
@@ -102,6 +102,8 @@ export const MindMap = forwardRef<MindMapHandle, MindMapProps>(function MindMap(
             <FormatToolbar
                 strings={strings}
                 style={selectedNode ? (selectedNode.style ?? {}) : undefined}
+                // Size box shows the size the branch really has in this view (map: 22 / 16 / 14 by depth, list: 15).
+                fontSize={selectedNode ? (view === "map" ? nodeFont({ ...selectedNode, style: undefined }, nodeDepth(root, selectedNode.id)).fontSize : Number(outlineTextStyle(undefined, nodeDepth(root, selectedNode.id)).fontSize)) : undefined}
                 onStyle={(patch) => {
                     if (!selected) return;
                     const result = setNodeStyle(root, [selected], patch);
@@ -117,21 +119,25 @@ export const MindMap = forwardRef<MindMapHandle, MindMapProps>(function MindMap(
             >
                 {view === "map" ? (
                     <>
-                        {DIRECTIONS.map((item) => (
-                            <ToolButton key={item.value} label={strings[item.key]} active={direction === item.value} disabled={readOnly} onClick={() => onChange({ ...value, direction: item.value })}>
-                                {item.icon}
-                            </ToolButton>
-                        ))}
+                        <ToolGroup>
+                            {DIRECTIONS.map((item) => (
+                                <ToolButton key={item.value} label={strings[item.key]} active={direction === item.value} disabled={readOnly} onClick={() => onChange({ ...value, direction: item.value })}>
+                                    {item.icon}
+                                </ToolButton>
+                            ))}
+                        </ToolGroup>
                         <ToolDivider />
-                        <ToolButton label={strings.zoomOut} onClick={() => mapRef.current?.zoomBy(1 / 1.2)}>
-                            <ZoomOutIcon />
-                        </ToolButton>
-                        <ToolButton label={strings.zoomIn} onClick={() => mapRef.current?.zoomBy(1.2)}>
-                            <ZoomInIcon />
-                        </ToolButton>
-                        <ToolButton label={strings.center} onClick={() => mapRef.current?.center()}>
-                            <FitCenterIcon />
-                        </ToolButton>
+                        <ToolGroup>
+                            <ToolButton label={strings.zoomOut} onClick={() => mapRef.current?.zoomBy(1 / 1.2)}>
+                                <ZoomOutIcon />
+                            </ToolButton>
+                            <ToolButton label={strings.zoomIn} onClick={() => mapRef.current?.zoomBy(1.2)}>
+                                <ZoomInIcon />
+                            </ToolButton>
+                            <ToolButton label={strings.center} onClick={() => mapRef.current?.center()}>
+                                <FitCenterIcon />
+                            </ToolButton>
+                        </ToolGroup>
                     </>
                 ) : null}
             </FormatToolbar>

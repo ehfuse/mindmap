@@ -8,7 +8,8 @@ import { FormatToolbar } from "./FormatToolbar";
 import { OutlineList } from "./OutlineList";
 import { useTreeHistory } from "./history";
 import { outlinerStrings, type OutlinerStrings } from "./i18n";
-import { locateNode, setNodeStyle, type TreeNode } from "./tree";
+import { locateNode, nodeDepth, setNodeStyle, type TreeNode } from "./tree";
+import { outlineTextStyle } from "./OutlineList";
 
 export interface OutlinerProps {
     value: TreeNode;
@@ -46,6 +47,7 @@ export function Outliner({ value, onChange, locale, strings: overrides, readOnly
                 <FormatToolbar
                     strings={strings}
                     style={selectedNode ? (selectedNode.style ?? {}) : undefined}
+                    fontSize={selected ? Number(outlineTextStyle(undefined, nodeDepth(value, selected)).fontSize) : undefined}
                     onStyle={(patch) => {
                         if (!selected) return;
                         const result = setNodeStyle(value, [selected], patch);

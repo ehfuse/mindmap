@@ -5,19 +5,117 @@
  * same black tooltip and the same color picker (@ehfuse/mui-color-picker).
  * `start` / `end` / `children` let the host add its own controls (view switch, map tools, …).
  */
-import { useState, type MouseEvent, type ReactNode } from "react";
-import { Box, ButtonBase, Menu, MenuItem, Tooltip } from "@mui/material";
+import { useEffect, useState, type MouseEvent, type ReactNode } from "react";
+import { Box, InputBase, Menu, MenuItem, Tooltip } from "@mui/material";
 import { ColorPicker } from "@ehfuse/mui-color-picker";
 import { BoldIcon, FontColorIcon, FontFillIcon, RedoIcon, RemoveFormatIcon, StrikeIcon, UnderlineIcon, UndoIcon } from "@ehfuse/toolbar-icons";
 import { hasDecoration, toggleDecoration, type TreeNodeStyle } from "./tree";
 import type { OutlinerStrings } from "./i18n";
 
-export const FONT_SIZES = [12, 14, 16, 18, 20, 24, 28, 32];
+/** Same list as the editor's size box. */
+export const FONT_SIZES = [8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 24, 28, 30, 36, 40, 44, 48];
+
+const SIZE_MIN = 1;
+const SIZE_MAX = 200;
+
+const Arrow = ({ up, size }: { up?: boolean; size: number }) => (
+    <svg width={size} height={size} viewBox="0 0 10 10" aria-hidden="true" style={{ display: "block" }}>
+        <path d={up ? "M1 7 L5 3 L9 7 Z" : "M1 3 L5 7 L9 3 Z"} fill="currentColor" />
+    </svg>
+);
+
+/**
+ * Font size box — same as the @ehfuse/editor size box: type a number + Enter, ↑ / ↓ steps by 1, ▼ opens the list, "px" after the number.
+ * Shows the real size of the selected node (never a "default" label).
+ */
+function SizeBox({ label, value, disabled, onApply }: { label: string; value: number | undefined; disabled: boolean; onApply: (px: number) => void }) {
+    const [text, setText] = useState("");
+    const [menu, setMenu] = useState<HTMLElement | null>(null);
+    useEffect(() => setText(value === undefined ? "" : String(Math.round(value * 10) / 10)), [value]);
+    const apply = (next: number) => {
+        if (!Number.isFinite(next)) return;
+        const px = Math.min(SIZE_MAX, Math.max(SIZE_MIN, Math.round(next * 10) / 10));
+        setText(String(px));
+        onApply(px);
+    };
+    return (
+        <ToolTip title={label}>
+            <Box
+                className="ehfuse-size-selector"
+                sx={{
+                    display: "inline-flex",
+                    alignItems: "stretch",
+                    height: "var(--editor-toolbar-button-size, 28px)",
+                    border: "1px solid rgba(0, 0, 0, 0.23)",
+                    borderRadius: "4px",
+                    bgcolor: "#fff",
+                    boxSizing: "border-box",
+                    opacity: disabled ? 0.5 : 1,
+                    "&:hover": { borderColor: disabled ? "rgba(0, 0, 0, 0.23)" : "rgba(0, 0, 0, 0.87)" },
+                    "&:focus-within": { borderColor: "#1976d2" },
+                }}
+            >
+                <InputBase
+                    value={text}
+                    disabled={disabled}
+                    onFocus={(event) => event.target.select()}
+                    onChange={(event) => setText(event.target.value.replace(/[^\d.]/g, ""))}
+                    onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                            event.preventDefault();
+                            apply(parseFloat(text));
+                        } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+                            event.preventDefault();
+                            apply((parseFloat(text) || value || 14) + (event.key === "ArrowUp" ? 1 : -1));
+                        } else if (event.key === "Escape") {
+                            event.preventDefault();
+                            setText(value === undefined ? "" : String(value));
+                        }
+                    }}
+                    onBlur={() => setText(value === undefined ? "" : String(Math.round(value * 10) / 10))}
+                    inputProps={{ inputMode: "decimal", "aria-label": label }}
+                    sx={{ width: 44, fontSize: "14px", "& input": { padding: "0 2px 0 8px", textAlign: "right" } }}
+                />
+                <Box component="span" sx={{ display: "flex", alignItems: "center", pr: "4px", fontSize: 12, color: "rgba(0, 0, 0, 0.6)", userSelect: "none" }}>
+                    px
+                </Box>
+                <Box
+                    component="button"
+                    type="button"
+                    aria-label={label}
+                    disabled={disabled}
+                    onMouseDown={(event: MouseEvent) => event.preventDefault()}
+                    onClick={(event: MouseEvent<HTMLElement>) => setMenu(event.currentTarget)}
+                    sx={{ display: "flex", alignItems: "center", justifyContent: "center", width: 20, p: 0, border: "none", borderLeft: "1px solid rgba(0, 0, 0, 0.12)", bgcolor: "transparent", color: "rgba(0, 0, 0, 0.6)", cursor: disabled ? "default" : "pointer", "&:hover:not(:disabled)": { bgcolor: "rgba(0, 0, 0, 0.06)", color: "rgba(0, 0, 0, 0.87)" } }}
+                >
+                    <Arrow size={10} />
+                </Box>
+                <Menu open={Boolean(menu)} anchorEl={menu} onClose={() => setMenu(null)} transitionDuration={0} disableAutoFocus disableAutoFocusItem disableRestoreFocus slotProps={{ paper: { sx: { maxHeight: 320 } } }}>
+                    {FONT_SIZES.map((size) => (
+                        <MenuItem
+                            key={size}
+                            dense
+                            selected={value === size}
+                            onClick={() => {
+                                apply(size);
+                                setMenu(null);
+                            }}
+                        >
+                            {size}
+                        </MenuItem>
+                    ))}
+                </Menu>
+            </Box>
+        </ToolTip>
+    );
+}
 
 export interface FormatToolbarProps {
     strings: OutlinerStrings;
     /** Style of the node being edited (undefined → nothing selected; format buttons are disabled). */
     style: TreeNodeStyle | undefined;
+    /** Size the selected node shows when it has no own `fontSize` (px) — the size box shows it instead of a "default" label. */
+    fontSize?: number;
     onStyle: (patch: Partial<TreeNodeStyle>) => void;
     canUndo?: boolean;
     canRedo?: boolean;
@@ -86,7 +184,13 @@ export function ToolButton({ label, active = false, disabled = false, onClick, c
     );
 }
 
-export const ToolDivider = () => <Box sx={{ width: "1px", alignSelf: "stretch", my: "8px", mx: "4px", bgcolor: "#e0e0e0" }} />;
+/** Group divider — same as the editor (1px × 24px, #e0e0e0). */
+export const ToolDivider = () => <Box sx={{ flex: "none", width: "1px", height: "24px", mx: "1px", alignSelf: "center", bgcolor: "var(--editor-border-color, #e0e0e0)" }} />;
+
+/** A group of buttons — the editor's `ehfuse-toolbar-group` (1px between buttons). */
+export function ToolGroup({ children }: { children: ReactNode }) {
+    return <Box sx={{ display: "flex", alignItems: "center", gap: "var(--editor-toolbar-button-gap, 1px)" }}>{children}</Box>;
+}
 
 function ColorButton({ label, type, value, disabled, onPick }: { label: string; type: "color" | "background"; value?: string; disabled: boolean; onPick: (color: string) => void }) {
     const [anchor, setAnchor] = useState<HTMLElement | null>(null);
@@ -119,85 +223,79 @@ function ColorButton({ label, type, value, disabled, onPick }: { label: string; 
     );
 }
 
-export function FormatToolbar({ strings, style, onStyle, canUndo, canRedo, onUndo, onRedo, start, children, end, readOnly }: FormatToolbarProps) {
-    const [sizeAnchor, setSizeAnchor] = useState<HTMLElement | null>(null);
+export function FormatToolbar({ strings, style, fontSize, onStyle, canUndo, canRedo, onUndo, onRedo, start, children, end, readOnly }: FormatToolbarProps) {
     const disabled = Boolean(readOnly) || !style;
-    const size = style?.fontSize ? parseFloat(style.fontSize) : null;
+    // Like the editor: show the size the text really has — its own size, otherwise the host's default for that node.
+    const shownSize = style ? (style.fontSize ? parseFloat(style.fontSize) : fontSize) : undefined;
     const bold = style?.fontWeight === "bold" || Number(style?.fontWeight) >= 600;
     const hasStyle = Boolean(style && Object.keys(style).length > 0);
     return (
-        <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "var(--editor-toolbar-button-gap, 1px)", minHeight: 44, px: 1, py: "4px", borderBottom: "1px solid #e0e0e0", bgcolor: "#fff", color: "#333", flexShrink: 0 }}>
-            {start}
-            {start ? <ToolDivider /> : null}
-            {onUndo ? (
+        // Same strip as the editor toolbar: light grey background, 6px padding, groups 4px apart with a divider between.
+        <Box
+            sx={{
+                display: "flex",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: "var(--editor-toolbar-group-gap, 4px)",
+                p: "var(--editor-toolbar-padding, 6px)",
+                borderBottom: "1px solid var(--editor-border-color, #e0e0e0)",
+                bgcolor: "var(--editor-toolbar-bg-color, #f8f9fa)",
+                color: "#333",
+                flexShrink: 0,
+            }}
+        >
+            {start ? (
                 <>
-                    <ToolButton label={strings.undo} disabled={readOnly || !canUndo} onClick={onUndo}>
-                        <UndoIcon />
-                    </ToolButton>
-                    <ToolButton label={strings.redo} disabled={readOnly || !canRedo} onClick={() => onRedo?.()}>
-                        <RedoIcon />
-                    </ToolButton>
+                    <ToolGroup>{start}</ToolGroup>
                     <ToolDivider />
                 </>
             ) : null}
-            <ToolTip title={strings.fontSize}>
-                <ButtonBase
-                    disabled={disabled}
-                    onMouseDown={(event) => event.preventDefault()}
-                    onClick={(event) => setSizeAnchor(event.currentTarget)}
-                    sx={{ height: "var(--editor-toolbar-button-size, 28px)", minWidth: 64, px: 1, gap: 0.5, justifyContent: "space-between", border: "1px solid #d0d0d0", borderRadius: "4px", fontSize: 14, color: disabled ? "rgba(0,0,0,0.26)" : "#333", bgcolor: "#fff", "&:hover": { borderColor: "#999" } }}
+            {onUndo ? (
+                <>
+                    <ToolGroup>
+                        <ToolButton label={strings.undo} disabled={readOnly || !canUndo} onClick={onUndo}>
+                            <UndoIcon />
+                        </ToolButton>
+                        <ToolButton label={strings.redo} disabled={readOnly || !canRedo} onClick={() => onRedo?.()}>
+                            <RedoIcon />
+                        </ToolButton>
+                    </ToolGroup>
+                    <ToolDivider />
+                </>
+            ) : null}
+            <ToolGroup>
+                <SizeBox label={strings.fontSize} value={shownSize} disabled={disabled} onApply={(px) => onStyle({ fontSize: px === fontSize ? undefined : `${px}px` })} />
+            </ToolGroup>
+            <ToolDivider />
+            <ToolGroup>
+                <ToolButton label={strings.bold} active={bold} disabled={disabled} onClick={() => onStyle({ fontWeight: bold ? undefined : "bold" })}>
+                    <BoldIcon />
+                </ToolButton>
+                <ToolButton label={strings.underline} active={hasDecoration(style, "underline")} disabled={disabled} onClick={() => onStyle({ textDecoration: toggleDecoration(style, "underline") })}>
+                    <UnderlineIcon />
+                </ToolButton>
+                <ToolButton label={strings.strike} active={hasDecoration(style, "line-through")} disabled={disabled} onClick={() => onStyle({ textDecoration: toggleDecoration(style, "line-through") })}>
+                    <StrikeIcon />
+                </ToolButton>
+            </ToolGroup>
+            <ToolDivider />
+            <ToolGroup>
+                <ColorButton label={strings.textColor} type="color" value={style?.color} disabled={disabled} onPick={(color) => onStyle({ color })} />
+                <ColorButton label={strings.background} type="background" value={style?.background} disabled={disabled} onPick={(color) => onStyle({ background: color.toLowerCase() === "#ffffff" ? undefined : color })} />
+                <ToolButton
+                    label={strings.clearFormat}
+                    disabled={disabled || !hasStyle}
+                    onClick={() => onStyle({ fontSize: undefined, color: undefined, background: undefined, fontWeight: undefined, textDecoration: undefined })}
                 >
-                    {size ?? strings.sizeDefault}
-                    <Box component="span" sx={{ fontSize: 10, color: "#888" }}>
-                        ▼
-                    </Box>
-                </ButtonBase>
-            </ToolTip>
-            <Menu open={Boolean(sizeAnchor)} anchorEl={sizeAnchor} onClose={() => setSizeAnchor(null)} transitionDuration={0} disableRestoreFocus slotProps={{ paper: { sx: { maxHeight: 320 } } }}>
-                <MenuItem
-                    dense
-                    selected={size === null}
-                    onClick={() => {
-                        onStyle({ fontSize: undefined });
-                        setSizeAnchor(null);
-                    }}
-                >
-                    {strings.sizeDefault}
-                </MenuItem>
-                {FONT_SIZES.map((value) => (
-                    <MenuItem
-                        key={value}
-                        dense
-                        selected={size === value}
-                        onClick={() => {
-                            onStyle({ fontSize: `${value}px` });
-                            setSizeAnchor(null);
-                        }}
-                    >
-                        {value}
-                    </MenuItem>
-                ))}
-            </Menu>
-            <ToolButton label={strings.bold} active={bold} disabled={disabled} onClick={() => onStyle({ fontWeight: bold ? undefined : "bold" })}>
-                <BoldIcon />
-            </ToolButton>
-            <ToolButton label={strings.underline} active={hasDecoration(style, "underline")} disabled={disabled} onClick={() => onStyle({ textDecoration: toggleDecoration(style, "underline") })}>
-                <UnderlineIcon />
-            </ToolButton>
-            <ToolButton label={strings.strike} active={hasDecoration(style, "line-through")} disabled={disabled} onClick={() => onStyle({ textDecoration: toggleDecoration(style, "line-through") })}>
-                <StrikeIcon />
-            </ToolButton>
-            <ColorButton label={strings.textColor} type="color" value={style?.color} disabled={disabled} onPick={(color) => onStyle({ color })} />
-            <ColorButton label={strings.background} type="background" value={style?.background} disabled={disabled} onPick={(color) => onStyle({ background: color.toLowerCase() === "#ffffff" ? undefined : color })} />
-            <ToolButton
-                label={strings.clearFormat}
-                disabled={disabled || !hasStyle}
-                onClick={() => onStyle({ fontSize: undefined, color: undefined, background: undefined, fontWeight: undefined, textDecoration: undefined })}
-            >
-                <RemoveFormatIcon />
-            </ToolButton>
-            {children ? <ToolDivider /> : null}
-            {children}
+                    <RemoveFormatIcon />
+                </ToolButton>
+            </ToolGroup>
+            {children ? (
+                <>
+                    <ToolDivider />
+                    {children}
+                </>
+            ) : null}
             <Box sx={{ flex: 1 }} />
             {end}
         </Box>
