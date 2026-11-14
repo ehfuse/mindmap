@@ -265,6 +265,9 @@ export function FormatToolbar({ strings, style, fontSize, onStyle, canUndo, canR
             <ToolGroup>
                 <ColorButton label={strings.textColor} type="color" value={style?.color} disabled={disabled} onPick={(color) => onStyle({ color })} />
                 <ColorButton label={strings.background} type="background" value={style?.background} disabled={disabled} onPick={(color) => onStyle({ background: color.toLowerCase() === "#ffffff" ? undefined : color })} />
+            </ToolGroup>
+            <ToolDivider />
+            <ToolGroup>
                 <ToolButton
                     label={strings.clearFormat}
                     disabled={disabled || !hasStyle}

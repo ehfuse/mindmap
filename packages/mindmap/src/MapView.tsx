@@ -419,7 +419,8 @@ export const MapView = forwardRef<MapViewHandle, MapViewProps>(function MapView(
                         position: "absolute",
                         left: view.x + (selected.x + selected.w / 2) * view.z,
                         top: view.y + selected.y * view.z,
-                        transform: "translate(-50%, calc(-100% - 8px))",
+                        // 14px above — clear of the selection ring around the branch.
+                        transform: "translate(-50%, calc(-100% - 14px))",
                         display: "flex",
                         gap: 0.25,
                         p: 0.25,
