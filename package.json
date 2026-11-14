@@ -1,0 +1,14 @@
+{
+    "name": "ehfuse-mindmap-monorepo",
+    "private": true,
+    "workspaces": [
+        "packages/outliner",
+        "packages/mindmap",
+        "example"
+    ],
+    "scripts": {
+        "build": "npm run build -w @ehfuse/outliner && npm run build -w @ehfuse/mindmap",
+        "typecheck": "npm run typecheck -w @ehfuse/outliner && npm run typecheck -w @ehfuse/mindmap",
+        "example": "npm run dev -w mindmap-example"
+    }
+}

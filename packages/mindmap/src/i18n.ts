@@ -1,0 +1,20 @@
+import { outlinerStrings, type OutlinerStrings } from "@ehfuse/outliner";
+
+/** Map-only strings (the formatting / outline strings come from @ehfuse/outliner). */
+const STRINGS = {
+    ko: { map: "지도", outline: "목록", addChild: "아래 가지", addSibling: "옆 가지", edit: "글 고치기", remove: "지우기", dirSide: "양쪽으로 펼치기", dirRight: "오른쪽으로 펼치기", dirLeft: "왼쪽으로 펼치기", center: "가운데로", zoomIn: "확대", zoomOut: "축소", mapHint: "두 번 클릭: 글 고치기 · Tab: 아래 가지 · Enter: 옆 가지 · 가지 끌기: 옮기기 · 빈 곳 끌기: 이동 · Ctrl+휠: 확대", newTopic: "새 가지" },
+    en: { map: "Map", outline: "List", addChild: "Child branch", addSibling: "Sibling branch", edit: "Edit text", remove: "Delete", dirSide: "Grow both ways", dirRight: "Grow to the right", dirLeft: "Grow to the left", center: "Center", zoomIn: "Zoom in", zoomOut: "Zoom out", mapHint: "Double-click: edit · Tab: child · Enter: sibling · Drag a branch: move · Drag empty space: pan · Ctrl+wheel: zoom", newTopic: "New branch" },
+    ja: { map: "マップ", outline: "リスト", addChild: "下の枝", addSibling: "横の枝", edit: "文字を編集", remove: "削除", dirSide: "両側に広げる", dirRight: "右に広げる", dirLeft: "左に広げる", center: "中央へ", zoomIn: "拡大", zoomOut: "縮小", mapHint: "ダブルクリック: 編集 · Tab: 下の枝 · Enter: 横の枝 · 枝をドラッグ: 移動 · 空白ドラッグ: スクロール · Ctrl+ホイール: 拡大", newTopic: "新しい枝" },
+    zh: { map: "导图", outline: "列表", addChild: "子分支", addSibling: "同级分支", edit: "编辑文字", remove: "删除", dirSide: "两侧展开", dirRight: "向右展开", dirLeft: "向左展开", center: "居中", zoomIn: "放大", zoomOut: "缩小", mapHint: "双击: 编辑 · Tab: 子分支 · Enter: 同级分支 · 拖动分支: 移动 · 拖动空白: 平移 · Ctrl+滚轮: 缩放", newTopic: "新分支" },
+    de: { map: "Karte", outline: "Liste", addChild: "Unterzweig", addSibling: "Nebenzweig", edit: "Text bearbeiten", remove: "Löschen", dirSide: "Beidseitig", dirRight: "Nach rechts", dirLeft: "Nach links", center: "Zentrieren", zoomIn: "Vergrößern", zoomOut: "Verkleinern", mapHint: "Doppelklick: bearbeiten · Tab: Unterzweig · Enter: Nebenzweig · Zweig ziehen: verschieben · Leere Fläche ziehen: schwenken · Strg+Rad: Zoom", newTopic: "Neuer Zweig" },
+    fr: { map: "Carte", outline: "Liste", addChild: "Branche enfant", addSibling: "Branche sœur", edit: "Modifier le texte", remove: "Supprimer", dirSide: "Des deux côtés", dirRight: "Vers la droite", dirLeft: "Vers la gauche", center: "Centrer", zoomIn: "Zoomer", zoomOut: "Dézoomer", mapHint: "Double-clic : modifier · Tab : enfant · Entrée : sœur · Glisser une branche : déplacer · Glisser le vide : défiler · Ctrl+molette : zoom", newTopic: "Nouvelle branche" },
+    it: { map: "Mappa", outline: "Elenco", addChild: "Ramo figlio", addSibling: "Ramo fratello", edit: "Modifica testo", remove: "Elimina", dirSide: "Su entrambi i lati", dirRight: "Verso destra", dirLeft: "Verso sinistra", center: "Centra", zoomIn: "Ingrandisci", zoomOut: "Riduci", mapHint: "Doppio clic: modifica · Tab: figlio · Invio: fratello · Trascina un ramo: sposta · Trascina il vuoto: scorri · Ctrl+rotella: zoom", newTopic: "Nuovo ramo" },
+    vi: { map: "Bản đồ", outline: "Danh sách", addChild: "Nhánh con", addSibling: "Nhánh ngang", edit: "Sửa chữ", remove: "Xóa", dirSide: "Mở hai bên", dirRight: "Mở sang phải", dirLeft: "Mở sang trái", center: "Về giữa", zoomIn: "Phóng to", zoomOut: "Thu nhỏ", mapHint: "Nhấp đúp: sửa · Tab: nhánh con · Enter: nhánh ngang · Kéo nhánh: di chuyển · Kéo chỗ trống: cuộn · Ctrl+cuộn: phóng to", newTopic: "Nhánh mới" },
+} as const;
+
+export type MindMapStrings = OutlinerStrings & { [K in keyof (typeof STRINGS)["en"]]: string };
+
+export function mindMapStrings(locale?: string, overrides?: Partial<MindMapStrings>): MindMapStrings {
+    const lang = (locale ?? "en").slice(0, 2).toLowerCase() as keyof typeof STRINGS;
+    return { ...outlinerStrings(locale), ...(STRINGS[lang] ?? STRINGS.en), ...overrides };
+}
