@@ -46,7 +46,7 @@ export function ToolTip({ title, children }: { title: string; children: ReactNod
     );
 }
 
-/** Same button as the editor toolbar — 32px, 4px radius, light grey when on. */
+/** Same button as the editor toolbar — 28px (icon 18px) by default, 4px radius, light grey when on. */
 export function ToolButton({ label, active = false, disabled = false, onClick, children }: { label: string; active?: boolean; disabled?: boolean; onClick: (event: MouseEvent<HTMLElement>) => void; children: ReactNode }) {
     return (
         <ToolTip title={label}>
@@ -66,8 +66,8 @@ export function ToolButton({ label, active = false, disabled = false, onClick, c
                     alignItems: "center",
                     justifyContent: "center",
                     // Same CSS variables as @ehfuse/editor — a host can shrink both toolbars at once.
-                    width: "var(--editor-toolbar-button-size, 32px)",
-                    height: "var(--editor-toolbar-button-size, 32px)",
+                    width: "var(--editor-toolbar-button-size, 28px)",
+                    height: "var(--editor-toolbar-button-size, 28px)",
                     p: 0,
                     border: "none",
                     borderRadius: "4px",
@@ -77,7 +77,7 @@ export function ToolButton({ label, active = false, disabled = false, onClick, c
                     transition: "background-color 150ms cubic-bezier(0.4, 0, 0.2, 1)",
                     "&:hover:not(:disabled)": { bgcolor: active ? "rgba(0, 0, 0, 0.08)" : "rgba(0, 0, 0, 0.04)" },
                     "&:focus": { outline: "none" },
-                    "& svg": { width: "var(--editor-toolbar-icon-size, 20px)", height: "var(--editor-toolbar-icon-size, 20px)" },
+                    "& svg": { width: "var(--editor-toolbar-icon-size, 18px)", height: "var(--editor-toolbar-icon-size, 18px)" },
                 }}
             >
                 {children}
@@ -126,7 +126,7 @@ export function FormatToolbar({ strings, style, onStyle, canUndo, canRedo, onUnd
     const bold = style?.fontWeight === "bold" || Number(style?.fontWeight) >= 600;
     const hasStyle = Boolean(style && Object.keys(style).length > 0);
     return (
-        <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "var(--editor-toolbar-button-gap, 2px)", minHeight: 44, px: 1, py: "4px", borderBottom: "1px solid #e0e0e0", bgcolor: "#fff", color: "#333", flexShrink: 0 }}>
+        <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "var(--editor-toolbar-button-gap, 1px)", minHeight: 44, px: 1, py: "4px", borderBottom: "1px solid #e0e0e0", bgcolor: "#fff", color: "#333", flexShrink: 0 }}>
             {start}
             {start ? <ToolDivider /> : null}
             {onUndo ? (
@@ -145,7 +145,7 @@ export function FormatToolbar({ strings, style, onStyle, canUndo, canRedo, onUnd
                     disabled={disabled}
                     onMouseDown={(event) => event.preventDefault()}
                     onClick={(event) => setSizeAnchor(event.currentTarget)}
-                    sx={{ height: "var(--editor-toolbar-button-size, 32px)", minWidth: 64, px: 1, gap: 0.5, justifyContent: "space-between", border: "1px solid #d0d0d0", borderRadius: "4px", fontSize: 14, color: disabled ? "rgba(0,0,0,0.26)" : "#333", bgcolor: "#fff", "&:hover": { borderColor: "#999" } }}
+                    sx={{ height: "var(--editor-toolbar-button-size, 28px)", minWidth: 64, px: 1, gap: 0.5, justifyContent: "space-between", border: "1px solid #d0d0d0", borderRadius: "4px", fontSize: 14, color: disabled ? "rgba(0,0,0,0.26)" : "#333", bgcolor: "#fff", "&:hover": { borderColor: "#999" } }}
                 >
                     {size ?? strings.sizeDefault}
                     <Box component="span" sx={{ fontSize: 10, color: "#888" }}>

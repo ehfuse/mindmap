@@ -67,8 +67,8 @@ The toolbar reads the same CSS variables as `@ehfuse/editor`, so one rule sizes 
 
 ```css
 :root {
-    --editor-toolbar-button-size: 26px; /* default 32px */
-    --editor-toolbar-icon-size: 18px;   /* default 20px */
-    --editor-toolbar-button-gap: 0px;   /* default 2px */
+    --editor-toolbar-button-size: 26px; /* default 28px */
+    --editor-toolbar-icon-size: 18px;   /* default 18px */
+    --editor-toolbar-button-gap: 0px;   /* default 1px */
 }
 ```

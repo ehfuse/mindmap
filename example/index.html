@@ -6,6 +6,10 @@
         <title>@ehfuse/mindmap · @ehfuse/outliner</title>
     </head>
     <body style="margin: 0">
+        <!-- Toolbar size — same values Taskham uses (defaults: 28px button · 18px icon · 1px gap). -->
+        <style>
+            :root { --editor-toolbar-button-size: 26px; --editor-toolbar-icon-size: 18px; --editor-toolbar-button-gap: 0px; }
+        </style>
         <div id="root"></div>
         <script type="module" src="/src/main.tsx"></script>
     </body>
