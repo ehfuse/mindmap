@@ -6,7 +6,7 @@
  * `start` / `end` / `children` let the host add its own controls (view switch, map tools, …).
  */
 import { useEffect, useState, type MouseEvent, type ReactNode } from "react";
-import { Box, InputBase, Menu, MenuItem, Tooltip } from "@mui/material";
+import { Box, InputBase, Tooltip } from "@mui/material";
 import { ColorPicker } from "@ehfuse/mui-color-picker";
 import { BoldIcon, FontColorIcon, FontFillIcon, RedoIcon, RemoveFormatIcon, StrikeIcon, UnderlineIcon, UndoIcon } from "@ehfuse/toolbar-icons";
 import { hasDecoration, toggleDecoration, type TreeNodeStyle } from "./tree";
@@ -25,12 +25,12 @@ const Arrow = ({ up, size }: { up?: boolean; size: number }) => (
 );
 
 /**
- * Font size box — same as the @ehfuse/editor size box: type a number + Enter, ↑ / ↓ steps by 1, ▼ opens the list, "px" after the number.
- * Shows the real size of the selected node (never a "default" label).
+ * Font size box — the editor's size box in stepper form (as Changupboguk's article editor uses it):
+ * the number of the selected node's real size, type a number + Enter, ↑ / ↓ keys or the ▲ ▼ buttons step by 1. No unit, no list.
+ * 32px tall like the editor's box (it stays that height even when toolbar buttons are smaller).
  */
 function SizeBox({ label, value, disabled, onApply }: { label: string; value: number | undefined; disabled: boolean; onApply: (px: number) => void }) {
     const [text, setText] = useState("");
-    const [menu, setMenu] = useState<HTMLElement | null>(null);
     useEffect(() => setText(value === undefined ? "" : String(Math.round(value * 10) / 10)), [value]);
     const apply = (next: number) => {
         if (!Number.isFinite(next)) return;
@@ -38,6 +38,20 @@ function SizeBox({ label, value, disabled, onApply }: { label: string; value: nu
         setText(String(px));
         onApply(px);
     };
+    const step = (delta: 1 | -1) => apply((parseFloat(text) || value || 14) + delta);
+    const stepSx = {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flex: 1,
+        width: 18,
+        p: 0,
+        border: "none",
+        bgcolor: "transparent",
+        color: "rgba(0, 0, 0, 0.6)",
+        cursor: disabled ? "default" : "pointer",
+        "&:hover:not(:disabled)": { bgcolor: "rgba(0, 0, 0, 0.06)", color: "rgba(0, 0, 0, 0.87)" },
+    } as const;
     return (
         <ToolTip title={label}>
             <Box
@@ -45,7 +59,7 @@ function SizeBox({ label, value, disabled, onApply }: { label: string; value: nu
                 sx={{
                     display: "inline-flex",
                     alignItems: "stretch",
-                    height: "var(--editor-toolbar-button-size, 28px)",
+                    height: 32,
                     border: "1px solid rgba(0, 0, 0, 0.23)",
                     borderRadius: "4px",
                     bgcolor: "#fff",
@@ -66,7 +80,7 @@ function SizeBox({ label, value, disabled, onApply }: { label: string; value: nu
                             apply(parseFloat(text));
                         } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
                             event.preventDefault();
-                            apply((parseFloat(text) || value || 14) + (event.key === "ArrowUp" ? 1 : -1));
+                            step(event.key === "ArrowUp" ? 1 : -1);
                         } else if (event.key === "Escape") {
                             event.preventDefault();
                             setText(value === undefined ? "" : String(value));
@@ -74,37 +88,16 @@ function SizeBox({ label, value, disabled, onApply }: { label: string; value: nu
                     }}
                     onBlur={() => setText(value === undefined ? "" : String(Math.round(value * 10) / 10))}
                     inputProps={{ inputMode: "decimal", "aria-label": label }}
-                    sx={{ width: 44, fontSize: "14px", "& input": { padding: "0 2px 0 8px", textAlign: "right" } }}
+                    sx={{ width: 48, fontSize: "14px", "& input": { padding: "0 8px", textAlign: "right" } }}
                 />
-                <Box component="span" sx={{ display: "flex", alignItems: "center", pr: "4px", fontSize: 12, color: "rgba(0, 0, 0, 0.6)", userSelect: "none" }}>
-                    px
+                <Box sx={{ display: "flex", flexDirection: "column", borderLeft: "1px solid rgba(0, 0, 0, 0.12)" }}>
+                    <Box component="button" type="button" aria-label={`${label} +`} disabled={disabled} onMouseDown={(event: MouseEvent) => event.preventDefault()} onClick={() => step(1)} sx={stepSx}>
+                        <Arrow up size={8} />
+                    </Box>
+                    <Box component="button" type="button" aria-label={`${label} −`} disabled={disabled} onMouseDown={(event: MouseEvent) => event.preventDefault()} onClick={() => step(-1)} sx={stepSx}>
+                        <Arrow size={8} />
+                    </Box>
                 </Box>
-                <Box
-                    component="button"
-                    type="button"
-                    aria-label={label}
-                    disabled={disabled}
-                    onMouseDown={(event: MouseEvent) => event.preventDefault()}
-                    onClick={(event: MouseEvent<HTMLElement>) => setMenu(event.currentTarget)}
-                    sx={{ display: "flex", alignItems: "center", justifyContent: "center", width: 20, p: 0, border: "none", borderLeft: "1px solid rgba(0, 0, 0, 0.12)", bgcolor: "transparent", color: "rgba(0, 0, 0, 0.6)", cursor: disabled ? "default" : "pointer", "&:hover:not(:disabled)": { bgcolor: "rgba(0, 0, 0, 0.06)", color: "rgba(0, 0, 0, 0.87)" } }}
-                >
-                    <Arrow size={10} />
-                </Box>
-                <Menu open={Boolean(menu)} anchorEl={menu} onClose={() => setMenu(null)} transitionDuration={0} disableAutoFocus disableAutoFocusItem disableRestoreFocus slotProps={{ paper: { sx: { maxHeight: 320 } } }}>
-                    {FONT_SIZES.map((size) => (
-                        <MenuItem
-                            key={size}
-                            dense
-                            selected={value === size}
-                            onClick={() => {
-                                apply(size);
-                                setMenu(null);
-                            }}
-                        >
-                            {size}
-                        </MenuItem>
-                    ))}
-                </Menu>
             </Box>
         </ToolTip>
     );
@@ -245,7 +238,8 @@ export function FormatToolbar({ strings, style, fontSize, onStyle, canUndo, canR
                 flexShrink: 0,
             }}
         >
-            {start ? <ToolGroup>{start}</ToolGroup> : null}
+            {/* View switch — a little more room before the size box (no divider there). */}
+            {start ? <Box sx={{ display: "flex", alignItems: "center", mr: "8px" }}>{start}</Box> : null}
             {/* The size box has its own border — no dividers on either side (2026-11-14). */}
             <ToolGroup>
                 <SizeBox label={strings.fontSize} value={shownSize} disabled={disabled} onApply={(px) => onStyle({ fontSize: px === fontSize ? undefined : `${px}px` })} />
