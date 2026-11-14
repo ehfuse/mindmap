@@ -245,16 +245,11 @@ export function FormatToolbar({ strings, style, fontSize, onStyle, canUndo, canR
                 flexShrink: 0,
             }}
         >
-            {start ? (
-                <>
-                    <ToolGroup>{start}</ToolGroup>
-                    <ToolDivider />
-                </>
-            ) : null}
+            {start ? <ToolGroup>{start}</ToolGroup> : null}
+            {/* The size box has its own border — no dividers on either side (2026-11-14). */}
             <ToolGroup>
                 <SizeBox label={strings.fontSize} value={shownSize} disabled={disabled} onApply={(px) => onStyle({ fontSize: px === fontSize ? undefined : `${px}px` })} />
             </ToolGroup>
-            <ToolDivider />
             <ToolGroup>
                 <ToolButton label={strings.bold} active={bold} disabled={disabled} onClick={() => onStyle({ fontWeight: bold ? undefined : "bold" })}>
                     <BoldIcon />
