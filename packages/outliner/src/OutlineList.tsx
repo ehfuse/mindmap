@@ -7,8 +7,8 @@
  */
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from "react";
 import { Box, IconButton } from "@mui/material";
-import ArrowRightIcon from "@mui/icons-material/ArrowRight";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import {
     addBelow,
@@ -209,7 +209,8 @@ export function OutlineList({ root, onEdit, selectedId, onSelect, strings, readO
                                 onClick={() => apply(toggleFold(root, row.node.id))}
                                 sx={{ width: 22, height: 22, p: 0, color: "text.secondary" }}
                             >
-                                {folded ? <ArrowRightIcon sx={{ fontSize: 20 }} /> : <ArrowDropDownIcon sx={{ fontSize: 20 }} />}
+                                {/* Chevrons (∨ / ›) rather than filled triangles. */}
+                                {folded ? <ChevronRightIcon sx={{ fontSize: 18 }} /> : <ExpandMoreIcon sx={{ fontSize: 18 }} />}
                             </IconButton>
                         ) : (
                             <Box sx={{ width: 22, display: "flex", justifyContent: "center", flexShrink: 0 }}>
