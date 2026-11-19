@@ -1,6 +1,6 @@
 {
     "name": "@ehfuse/mindmap",
-    "version": "0.2.10",
+    "version": "0.2.11",
     "description": "Mind map for React + MUI — map and outline views of one tree, formatting toolbar, drag to move, undo, SVG export",
     "main": "dist/index.js",
     "module": "dist/index.esm.js",
