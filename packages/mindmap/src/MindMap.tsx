@@ -4,8 +4,8 @@
  */
 import { forwardRef, useImperativeHandle, useRef, useState, type ReactNode } from "react";
 import { Box, ButtonBase } from "@mui/material";
-import { BranchBothIcon, BranchLeftIcon, BranchRightIcon, FitCenterIcon, ZoomInIcon, ZoomOutIcon } from "@ehfuse/toolbar-icons";
-import { FormatToolbar, OutlineList, ToolButton, ToolDivider, ToolGroup, locateNode, nodeDepth, outlineTextStyle, setNodeStyle, useTreeHistory, type TreeNode } from "@ehfuse/outliner";
+import { BranchBothIcon, BranchLeftIcon, BranchRightIcon, FitCenterIcon, IndentIcon, OutdentIcon, ZoomInIcon, ZoomOutIcon } from "@ehfuse/toolbar-icons";
+import { FormatToolbar, OutlineList, ToolButton, ToolDivider, ToolGroup, indentNode, locateNode, nodeDepth, outdentNode, outlineTextStyle, setNodeStyle, useTreeHistory, type TreeNode } from "@ehfuse/outliner";
 import { MapView, type MapViewHandle } from "./MapView";
 import { mindMapStrings, type MindMapStrings } from "./i18n";
 import { nodeFont, type MapDirection } from "./layout";
@@ -53,6 +53,14 @@ export const MindMap = forwardRef<MindMapHandle, MindMapProps>(function MindMap(
         if (next === "map") requestAnimationFrame(() => mapRef.current?.center());
     };
     const [selected, setSelected] = useState<string | null>(null);
+    const [focusRequest, setFocusRequest] = useState<{ id: string } | null>(null);
+    /** Indent / outdent the selected row from the toolbar and keep typing in it. */
+    const shiftLevel = (run: typeof indentNode) => {
+        const result = selected ? run(root, selected) : null;
+        if (!result || !selected) return;
+        commit(result.root);
+        setFocusRequest({ id: selected });
+    };
     const history = useTreeHistory();
     const mapRef = useRef<MapViewHandle | null>(null);
     const root = value.nodeData;
@@ -139,14 +147,35 @@ export const MindMap = forwardRef<MindMapHandle, MindMapProps>(function MindMap(
                             </ToolButton>
                         </ToolGroup>
                     </>
-                ) : null}
+                ) : (
+                    // List view: indent / outdent buttons (0.2.10) — phones have no Tab key, so without these a step-style list could not be made on a phone.
+                    <>
+                        <ToolDivider />
+                        <ToolGroup>
+                            <ToolButton
+                                label={strings.outdent}
+                                disabled={readOnly || !selected}
+                                onClick={() => shiftLevel(outdentNode)}
+                            >
+                                <OutdentIcon />
+                            </ToolButton>
+                            <ToolButton
+                                label={strings.indent}
+                                disabled={readOnly || !selected}
+                                onClick={() => shiftLevel(indentNode)}
+                            >
+                                <IndentIcon />
+                            </ToolButton>
+                        </ToolGroup>
+                    </>
+                )}
             </FormatToolbar>
             <Box sx={{ position: "relative", flex: 1, minHeight: 0 }}>
                 {view === "map" ? (
                     <MapView ref={mapRef} root={root} direction={direction} onEdit={commit} selectedId={selected} onSelect={setSelected} strings={strings} readOnly={readOnly} onUndo={undo} onRedo={redo} hint={hint} />
                 ) : (
                     <>
-                        <OutlineList root={root} onEdit={commit} selectedId={selected} onSelect={setSelected} strings={strings} readOnly={readOnly} onUndo={undo} onRedo={redo} />
+                        <OutlineList root={root} onEdit={commit} selectedId={selected} onSelect={setSelected} strings={strings} readOnly={readOnly} onUndo={undo} onRedo={redo} focusRequest={focusRequest} />
                         {hint ? (
                             <Box sx={{ position: "absolute", left: 12, right: 12, bottom: 8, fontSize: 12, lineHeight: 1.5, color: "text.secondary", pointerEvents: "none" }}>
                                 <Box component="span" sx={{ bgcolor: "rgba(255,255,255,0.9)" }}>

@@ -36,6 +36,8 @@ export interface OutlineListProps {
     root: TreeNode;
     /** A change; `mergeKey` is set for typing so history can merge it. */
     onEdit: (root: TreeNode, mergeKey?: string) => void;
+    /** Focus this row again (a new object each time) — for host toolbar buttons that move rows. */
+    focusRequest?: { id: string } | null;
     selectedId?: string | null;
     onSelect?: (id: string) => void;
     strings: OutlinerStrings;
@@ -59,13 +61,17 @@ export function outlineTextStyle(style: TreeNodeStyle | undefined, depth: number
     };
 }
 
-export function OutlineList({ root, onEdit, selectedId, onSelect, strings, readOnly, onUndo, onRedo, paddingTop = 8, paddingBottom = 40 }: OutlineListProps) {
+export function OutlineList({ root, onEdit, selectedId, onSelect, strings, readOnly, onUndo, onRedo, paddingTop = 8, paddingBottom = 40, focusRequest }: OutlineListProps) {
     const inputs = useRef(new Map<string, HTMLInputElement>());
     const rowEls = useRef(new Map<string, HTMLDivElement>());
     const [focus, setFocus] = useState<string | null>(null);
     const [drop, setDrop] = useState<{ id: string; place: "before" | "after" } | null>(null);
     const [dragging, setDragging] = useState<string | null>(null);
     const rows = visibleRows(root);
+    // A host button moved a row (indent / outdent) — React moved its input in the DOM, which drops focus; put the caret back so a phone keeps its keyboard.
+    useEffect(() => {
+        if (focusRequest) setFocus(focusRequest.id);
+    }, [focusRequest]);
 
     useEffect(() => {
         if (!focus) return;
